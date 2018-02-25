@@ -29,6 +29,10 @@ COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.pth")
 # Directory of images to run detection on
 IMAGE_DIR = os.path.join(ROOT_DIR, "images")
 
+# Directory for saving predictions
+OUT_DIR = os.path.join(ROOT_DIR, "predictions")
+os.makedirs(OUT_DIR, exist_ok=True)
+
 class InferenceConfig(coco.CocoConfig):
     # Set batch size to 1 since we'll be running inference on
     # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
@@ -66,16 +70,18 @@ class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
                'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
                'teddy bear', 'hair drier', 'toothbrush']
 
-# Load a random image from the images folder
+# Load test images from the images folder
 file_names = next(os.walk(IMAGE_DIR))[2]
-#image = skimage.io.imread(os.path.join(IMAGE_DIR, random.choice(file_names)))
-image = skimage.io.imread(os.path.join(IMAGE_DIR, file_names[-1]))
 
-# Run detection
-results = model.detect([image])
+for file_name in file_names:
+  image = skimage.io.imread(os.path.join(IMAGE_DIR, file_name))
 
-# Visualize results
-r = results[0]
-visualize.display_instances(image, r['rois'], r['masks'], r['class_ids'],
-                            class_names, r['scores'])
-plt.show()
+  # Run detection
+  results = model.detect([image])
+
+  # Visualize results
+  r = results[0]
+  visualize.display_instances(image, r['rois'], r['masks'], r['class_ids'],
+                              class_names, r['scores'])
+  # plt.show()
+  plt.savefig(os.path.join(OUT_DIR, '{}.png'.format(file_name)))
